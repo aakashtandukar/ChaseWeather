@@ -100,34 +100,8 @@ struct WeatherHomeView: View {
             await viewModel.getWeatherData()
         }
         
-        
-        
-        // 🔍 Custom Search
-        //SearchBar(text: $searchText)
-        
-        SearchBar(text: .constant(""))
-            .onTapGesture {
-                showSearchPage = true
-                isFocused = false
-            }
-            .focused($isFocused)
-            .simultaneousGesture(
-                    TapGesture()
-                        .onEnded {
-                            print("TextField tapped")
-                            showSearchPage = true
-                            isFocused = false
-                        }
-                )
-            .onSubmit {
-                showSearchPage = true
-                isFocused = false
-            }
-            .padding()
-            
-            .sheet(isPresented: $showSearchPage) {
-                CitySearchView()
-            }
+        // 🔍 Search bar (native SwiftUI)
+        .searchable(text: $searchText, prompt: "Search for a city or airport")
         
     
 
