@@ -10,6 +10,8 @@ import SwiftUI
 
 struct WeatherHomeView: View {
     
+
+    
     init() {
         let appearance = UINavigationBarAppearance()
         appearance.configureWithTransparentBackground()
@@ -33,14 +35,16 @@ struct WeatherHomeView: View {
     @State private var showSearchPage = false
     @FocusState private var isFocused: Bool
     
-    let data: [CityWeather] = [
-        CityWeather(city: "Edison", subtitle: "My Location • Home", condition: "Clear", temperature: "-7°", high: "2°", low: "-11°", style: .clearNight, iconName: "cloud.moon.fill"),
-        CityWeather(city: "New York", subtitle: "8:10 PM", condition: "Clear", temperature: "-6°", high: "2°", low: "-10°", style: .clearNight, iconName: "cloud.moon.fill"),
-        CityWeather(city: "Chicago", subtitle: "7:10 PM", condition: "Mostly Cloudy", temperature: "-5°", high: "-2°", low: "-7°", style: .cloudy, iconName: "cloud.moon.fill"),
-        CityWeather(city: "Phillipsburg", subtitle: "8:10 PM", condition: "Clear", temperature: "-9°", high: "0°", low: "-14°", style: .clearNight, iconName: "cloud.moon.fill"),
-        CityWeather(city: "San Francisco", subtitle: "5:10 PM", condition: "Beach Hazards Statement", temperature: "16°", high: "19°", low: "9°", style: .cloudy, iconName: "cloud.moon.fill"),
-        CityWeather(city: "Kathmandu", subtitle: "6:55 AM", condition: "Mostly Sunny", temperature: "10°", high: "20°", low: "9°", style: .sunny, iconName: "cloud.moon.fill")
-    ]
+    @StateObject var viewModel : WeatherHomeViewModel = WeatherHomeViewModel(repository: WeatherRepository(apiService: ApiService()))
+    
+    let data: [CityWeather] =  [] // [
+//        CityWeather(city: "Edison", subtitle: "My Location • Home", condition: "Clear", temperature: "-7°", high: "2°", low: "-11°", style: .clearNight, iconName: "cloud.moon.fill"),
+//        CityWeather(city: "New York", subtitle: "8:10 PM", condition: "Clear", temperature: "-6°", high: "2°", low: "-10°", style: .clearNight, iconName: "cloud.moon.fill"),
+//        CityWeather(city: "Chicago", subtitle: "7:10 PM", condition: "Mostly Cloudy", temperature: "-5°", high: "-2°", low: "-7°", style: .cloudy, iconName: "cloud.moon.fill"),
+//        CityWeather(city: "Phillipsburg", subtitle: "8:10 PM", condition: "Clear", temperature: "-9°", high: "0°", low: "-14°", style: .clearNight, iconName: "cloud.moon.fill"),
+//        CityWeather(city: "San Francisco", subtitle: "5:10 PM", condition: "Beach Hazards Statement", temperature: "16°", high: "19°", low: "9°", style: .cloudy, iconName: "cloud.moon.fill"),
+//        CityWeather(city: "Kathmandu", subtitle: "6:55 AM", condition: "Mostly Sunny", temperature: "10°", high: "20°", low: "9°", style: .sunny, iconName: "cloud.moon.fill")
+//    ]
     
     var filteredData: [CityWeather] {
         if searchText.isEmpty { return data }
@@ -59,7 +63,7 @@ struct WeatherHomeView: View {
                 
                 List {
                     Section {
-                        ForEach(filteredData) { item in
+                        ForEach(viewModel.cityWeatherList) { item in
                             NavigationLink(value: item) {
                                 WeatherRowView(weather: item)
                                     .listRowInsets(EdgeInsets())
@@ -91,6 +95,9 @@ struct WeatherHomeView: View {
                 //CityWeatherDetailView(city: city)
                 WeatherDetailView()
             }
+        }
+        .task {
+            await viewModel.getWeatherData()
         }
         
         
@@ -152,10 +159,24 @@ struct WeatherRowView: View {
                     Spacer()
                     
                     // 🌤 Weather Icon + Temp
-                    VStack(spacing: 6) {
-                        Image(systemName: weather.iconName)
-                            .symbolRenderingMode(.hierarchical)
-                            .font(.system(size: 28))
+                    HStack(spacing: 6) {
+                        AsyncImage(url: weather.iconURL) { phase in
+                            if let image = phase.image {
+                                image
+                                    .resizable()
+                                    .scaledToFit()
+                            } else if phase.error != nil {
+                                // Show error/placeholder
+                                Image(systemName: "photo")
+                                    .foregroundColor(.gray)
+                            } else {
+                                // Show placeholder while loading
+                                ProgressView()
+                            }
+                        }
+                        .frame(width: 50, height: 50) // Set appropriate size
+                        
+
                         
                         Text(weather.temperature)
                             .font(.system(size: 38, weight: .light))
