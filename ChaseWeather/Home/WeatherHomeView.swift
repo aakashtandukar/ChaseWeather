@@ -30,6 +30,8 @@ struct WeatherHomeView: View {
     }
     
     @State private var searchText: String = ""
+    @State private var showSearchPage = false
+    @FocusState private var isFocused: Bool
     
     let data: [CityWeather] = [
         CityWeather(city: "Edison", subtitle: "My Location • Home", condition: "Clear", temperature: "-7°", high: "2°", low: "-11°", style: .clearNight, iconName: "cloud.moon.fill"),
@@ -94,7 +96,34 @@ struct WeatherHomeView: View {
         
         
         // 🔍 Custom Search
-        SearchBar(text: $searchText)
+        //SearchBar(text: $searchText)
+        
+        SearchBar(text: .constant(""))
+            .onTapGesture {
+                showSearchPage = true
+                isFocused = false
+            }
+            .focused($isFocused)
+            .simultaneousGesture(
+                    TapGesture()
+                        .onEnded {
+                            print("TextField tapped")
+                            showSearchPage = true
+                            isFocused = false
+                        }
+                )
+            .onSubmit {
+                showSearchPage = true
+                isFocused = false
+            }
+            .padding()
+            
+            .sheet(isPresented: $showSearchPage) {
+                CitySearchView()
+            }
+        
+    
+
     }
 }
 
