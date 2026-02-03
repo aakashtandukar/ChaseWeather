@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct CityWeather: Identifiable {
+struct CityWeather: Identifiable, Hashable {
     let id = UUID()
     let city: String
     let subtitle: String
@@ -16,4 +16,5 @@ struct CityWeather: Identifiable {
     let high: String
     let low: String
     let style: WeatherCardStyle
+    let iconName: String   // 👈 NEW
 }
