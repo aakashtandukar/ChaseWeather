@@ -4,61 +4,50 @@
 //
 //  Created by aakash tandukar on 2/3/26.
 //
-
-import SwiftUI
+import Foundation
 import Combine
 import CoreLocation
 
-protocol LocationServiceProtocol {
-    var authorizationStatus: CLAuthorizationStatus { get }
-    func requestWhenInUseAuthorization()
-    func getCurrentLocation() -> AnyPublisher<CLLocation, Error>
-}
+@MainActor
+class LocationService: NSObject, ObservableObject, CLLocationManagerDelegate {
 
-class LocationService: NSObject, LocationServiceProtocol, CLLocationManagerDelegate {
     private let locationManager = CLLocationManager()
-    private let locationSubject = PassthroughSubject<CLLocation, Error>()
-    @Published var latitude: Double = 0.0
-    @Published var longitude: Double = 0.0
-    
+
+    @Published private(set) var latitude: Double = 0
+    @Published private(set) var longitude: Double = 0
+
     override init() {
         super.init()
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyKilometer
     }
-    
+
     var authorizationStatus: CLAuthorizationStatus {
         locationManager.authorizationStatus
     }
-    
+
     func requestWhenInUseAuthorization() {
         locationManager.requestWhenInUseAuthorization()
     }
-    
-    func getCurrentLocation() -> AnyPublisher<CLLocation, Error> {
-        locationManager.startUpdatingLocation()
-        return locationSubject.eraseToAnyPublisher()
+
+    func startLocationUpdates() {
+        locationManager.requestLocation()
     }
-    
+
+    // MARK: Delegate
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         if manager.authorizationStatus == .authorizedWhenInUse {
-            manager.startUpdatingLocation()
+            manager.requestLocation()
         }
     }
-    
+
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        if let location = locations.last {
-            locationSubject.send(location)
-            latitude = location.coordinate.latitude
-            longitude = location.coordinate.longitude
-            
-            print("Lat:", latitude)
-            print("Long:", longitude)
-            locationManager.stopUpdatingLocation()
-        }
+        guard let loc = locations.last else { return }
+        latitude = loc.coordinate.latitude
+        longitude = loc.coordinate.longitude
     }
-    
+
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-        locationSubject.send(completion: .failure(error))
+        print("Location error:", error)
     }
 }
