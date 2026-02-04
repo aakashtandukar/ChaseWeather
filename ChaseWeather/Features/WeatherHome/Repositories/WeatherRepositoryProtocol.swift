@@ -9,4 +9,5 @@ import Foundation
 
 protocol WeatherRepositoryProtocol {
     func getCityWeather(latitude: Double, longitude: Double) async -> Result<CityWeather, ApiError>
+    func getCityList(query: String) async -> Result<CityNameList, ApiError>
 }

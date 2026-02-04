@@ -32,4 +32,20 @@ final class WeatherRepository: WeatherRepositoryProtocol {
         }
     }
     
+    func getCityList(query: String) async -> Result<CityNameList, ApiError> {
+        let endPoint = WeatherEndpoint.cityList(query: query)
+        let response: Result<CityNameListResponse, ApiError> = await apiService.request(endPoint)
+
+        switch response {
+        case .success(let response):
+            guard let cityList = CityNameList(from: response) else {
+                return .failure(.decodingData("Failed to map CityNameListResponse to cityList"))
+            }
+            return .success(cityList)
+
+        case .failure(let error):
+            return .failure(error)
+        }
+    }
+    
 }

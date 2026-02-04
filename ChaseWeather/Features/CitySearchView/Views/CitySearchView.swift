@@ -14,6 +14,9 @@ struct CitySearchView: View {
     @State private var searchText = ""
     @FocusState private var isSearchFocused: Bool
     @State private var recentSearches = ["New York", "Los Angeles", "Chicago"]
+    @State private var searchTask: Task<Void, Never>?
+    
+    @StateObject var viewModel : CityNameListViewModel
     
     // Sample cities for search results
     let cities = [
@@ -45,9 +48,12 @@ struct CitySearchView: View {
                             Image(systemName: "magnifyingglass")
                                 .foregroundStyle(.secondary)
                             
-                            TextField("Search for a city or airport", text: $searchText)
+                            TextField("Search for a city", text: $searchText)
                                 .focused($isSearchFocused)
                                 .autocorrectionDisabled()
+                                .onChange(of: searchText) { oldValue, newValue in
+                                    handleSearchTextChange(newValue)
+                                }
                             
                             if !searchText.isEmpty {
                                 Button {
@@ -127,6 +133,24 @@ struct CitySearchView: View {
             }
         }
     }
+    
+    // MARK: - Debounced Search
+        private func handleSearchTextChange(_ newValue: String) {
+            // Cancel previous search task
+            searchTask?.cancel()
+            
+            // Create new search task with debounce
+            searchTask = Task {
+                // Wait 500ms before searching (debounce)
+                try? await Task.sleep(nanoseconds: 500_000_000)
+                
+                // Check if task was cancelled
+                guard !Task.isCancelled else { return }
+                
+                // Perform API call
+                await viewModel.getCityNameListData(query: newValue)
+            }
+        }
     
     private func selectCity(_ city: String) {
         // Add to recent searches if not already there
@@ -217,3 +241,4 @@ struct SearchResultRow: View {
         .buttonStyle(.plain)
     }
 }
+
