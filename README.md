@@ -6,6 +6,28 @@ The app allows users to search for any city and view real-time weather details i
 
 ---
 
+## Screenshots
+
+![Home Screen](./Images/weather-home.jpg)
+![Detail Screen](./Images/weather-detail.jpg)
+
+## Setup 
+
+### Secrets & API Configuration (using .xcconfig)
+
+This project uses ⁠ .xcconfig ⁠ files to securely manage API keys, base URLs, and other sensitive values — *never* hardcode secrets in source code.
+
+### Step-by-step Setup
+
+1.⁠ ⁠*Locate the sample file*  
+   In the project navigator, find:  
+   ⁠ Resources/Sample.Secrets.xcconfig ⁠ (or ⁠ Sample.Secrets.xcconfig ⁠ in the root / Secrets folder)
+
+2.⁠ ⁠*Create your personal secrets file*  
+   - Right-click the sample file → *Duplicate*  
+   - Rename the duplicate to: *⁠ Secret.xcconfig ⁠*  
+   - *Important: Do **not* commit ⁠ secret.xcconfig ⁠ to version control
+
 ## 🚀 Features
 
 - 🌍 Search weather by city name
