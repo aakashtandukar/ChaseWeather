@@ -85,8 +85,10 @@ struct WeatherHomeView: View {
             // ⋯ More button
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    MoreButton {
-                        print("More tapped")
+                    Button {
+                        showSearchPage = true
+                    } label: {
+                        Image(systemName: "magnifyingglass")
                     }
                 }
             }
@@ -102,7 +104,11 @@ struct WeatherHomeView: View {
         }
         
         // 🔍 Search bar (native SwiftUI)
-        .searchable(text: $searchText, prompt: "Search for a city or airport")
+        //.searchable(text: $searchText, prompt: "Search for a city or airport")
+
+        .sheet(isPresented: $showSearchPage) {
+            CitySearchView(isPresented: $showSearchPage)
+        }
         
         .onAppear {
             viewModel.requestLocationPermissionAndFetch()
