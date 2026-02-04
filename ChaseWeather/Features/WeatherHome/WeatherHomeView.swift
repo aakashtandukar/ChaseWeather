@@ -7,6 +7,7 @@
 
 
 import SwiftUI
+import CoreLocation
 
 struct WeatherHomeView: View {
     
@@ -35,7 +36,7 @@ struct WeatherHomeView: View {
     @State private var showSearchPage = false
     @FocusState private var isFocused: Bool
     
-    @StateObject var viewModel : WeatherHomeViewModel = WeatherHomeViewModel(repository: WeatherRepository(apiService: ApiService()))
+    @StateObject var viewModel : WeatherHomeViewModel = WeatherHomeViewModel(repository: WeatherRepository(apiService: ApiService()), locationService: LocationService())
     
     let data: [CityWeather] =  [] // [
 //        CityWeather(city: "Edison", subtitle: "My Location • Home", condition: "Clear", temperature: "-7°", high: "2°", low: "-11°", style: .clearNight, iconName: "cloud.moon.fill"),
@@ -103,9 +104,12 @@ struct WeatherHomeView: View {
         // 🔍 Search bar (native SwiftUI)
         .searchable(text: $searchText, prompt: "Search for a city or airport")
         
-    
+        .onAppear {
+            viewModel.requestLocationPermissionAndFetch()
+        }
 
     }
+        
 }
 
 
@@ -209,3 +213,4 @@ enum WeatherCardStyle {
 #Preview {
     WeatherHomeView()
 }
+

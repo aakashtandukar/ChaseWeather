@@ -56,6 +56,6 @@ struct CityWeather: Identifiable, Hashable {
     private static func formatKelvin(_ kelvin: Double?) -> String {
         guard let kelvin else { return "N/A" }
         let celsius = kelvin - 273.15
-        return String(format: "%.1f°C", celsius)
+        return String(format: "%d°C", Int(celsius))
     }
 }

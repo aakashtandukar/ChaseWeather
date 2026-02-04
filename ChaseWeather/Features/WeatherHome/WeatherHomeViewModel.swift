@@ -6,6 +6,7 @@
 //
 import Foundation
 import Combine
+import CoreLocation
 
 @MainActor
 class WeatherHomeViewModel: ObservableObject {
@@ -14,11 +15,15 @@ class WeatherHomeViewModel: ObservableObject {
     
     @Published var message: String = "Hello, World!"
     @Published var cityWeatherList: [CityWeather] = []
+    @Published var errorMessage: String?
     
-    init(repository: WeatherRepositoryProtocol) {
+    private let locationService: LocationServiceProtocol
+    var locationServiceData = LocationService()
+    
+    init(repository: WeatherRepositoryProtocol, locationService: LocationServiceProtocol) {
             self.repository = repository
             Secrets.verifyAllSecretsExist()
-        
+        self.locationService = locationService
     }
     
     
@@ -26,7 +31,7 @@ class WeatherHomeViewModel: ObservableObject {
         let url = Secrets.getValueFor(.apiBaseURL)
         print(url)
         
-        switch await repository.getCityWeather(latitude: 44.34, longitude: 10.99) {
+        switch await repository.getCityWeather(latitude: locationServiceData.latitude, longitude: locationServiceData.longitude) {
         case .success(let response):
             self.cityWeatherList = [response]
             print(response)
@@ -35,5 +40,39 @@ class WeatherHomeViewModel: ObservableObject {
             print("Error: \(error.localizedDescription)")
         }
     }
+    
+    func fetchCurrentLocationWeather() {
+            guard locationService.authorizationStatus == .authorizedWhenInUse else {
+                errorMessage = "Location permission not granted."
+                return
+            }
+            
+//            isLoading = true
+//            locationService.getCurrentLocation()
+//                .flatMap { [weak self] location -> AnyPublisher<WeatherResponse, Error> in
+//                    self?.weatherService.fetchWeather(lat: location.coordinate.latitude, lon: location.coordinate.longitude) ?? Fail(error: URLError(.unknown)).eraseToAnyPublisher()
+//                }
+//                .map { WeatherDisplayModel(from: $0) }
+//                .catch { Just(WeatherDisplayModel(error: $0.localizedDescription)) }
+//                .sink { [weak self] model in
+//                    self?.weatherModel = model
+//                    self?.isLoading = false
+//                }
+//                .store(in: &cancellables)
+        }
+        
+        func requestLocationPermissionAndFetch() {
+            if locationService.authorizationStatus == .notDetermined {
+                locationService.requestWhenInUseAuthorization()
+                // Wait for delegate callback → handled in locationManagerDidChangeAuthorization
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+                    if self?.locationService.authorizationStatus == .authorizedWhenInUse {
+                        self?.fetchCurrentLocationWeather()
+                    }
+                }
+            } else if locationService.authorizationStatus == .authorizedWhenInUse {
+                fetchCurrentLocationWeather()
+            }
+        }
     
 }
